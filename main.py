@@ -1,6 +1,6 @@
-import sys
 import math
 import random
+import sys
 import time
 from dataclasses import dataclass
 
@@ -90,16 +90,18 @@ class Vec2:
 
 
 DIRS = {
-    'UP': Vec2(0, -1),
-    'DOWN': Vec2(0, 1),
-    'LEFT': Vec2(-1, 0),
-    'RIGHT': Vec2(1, 0),
+    "UP": Vec2(0, -1),
+    "DOWN": Vec2(0, 1),
+    "LEFT": Vec2(-1, 0),
+    "RIGHT": Vec2(1, 0),
 }
-DIR_LIST = [DIRS['UP'], DIRS['DOWN'], DIRS['LEFT'], DIRS['RIGHT']]
+DIR_LIST = [DIRS["UP"], DIRS["DOWN"], DIRS["LEFT"], DIRS["RIGHT"]]
 
 
 def grid_to_pixel(grid_pos: Vec2) -> Vec2:
-    return Vec2(grid_pos.x * TILE_SIZE + TILE_SIZE // 2, grid_pos.y * TILE_SIZE + TILE_SIZE // 2)
+    return Vec2(
+        grid_pos.x * TILE_SIZE + TILE_SIZE // 2, grid_pos.y * TILE_SIZE + TILE_SIZE // 2
+    )
 
 
 def pixel_to_grid(pixel_pos: Vec2) -> Vec2:
@@ -108,22 +110,22 @@ def pixel_to_grid(pixel_pos: Vec2) -> Vec2:
 
 def is_wall(gx, gy):
     if 0 <= gy < ROWS and 0 <= gx < COLS:
-        return MAZE_LAYOUT[gy][gx] == '#'
+        return MAZE_LAYOUT[gy][gx] == "#"
     return True
 
 
 def is_gate(gx, gy):
     if 0 <= gy < ROWS and 0 <= gx < COLS:
-        return MAZE_LAYOUT[gy][gx] == 'G'
+        return MAZE_LAYOUT[gy][gx] == "G"
     return False
 
 
 def is_walkable(gx, gy, allow_gate=False):
     if 0 <= gy < ROWS and 0 <= gx < COLS:
         c = MAZE_LAYOUT[gy][gx]
-        if c == '#':
+        if c == "#":
             return False
-        if c == 'G' and not allow_gate:
+        if c == "G" and not allow_gate:
             return False
         return True
     return False
@@ -134,9 +136,9 @@ def initial_pellets():
     power = set()
     for y, row in enumerate(MAZE_LAYOUT):
         for x, ch in enumerate(row):
-            if ch == '.':
+            if ch == ".":
                 pellets.add((x, y))
-            elif ch == 'o':
+            elif ch == "o":
                 power.add((x, y))
     return pellets, power
 
@@ -160,17 +162,19 @@ class Player:
     def handle_input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP] or keys[pygame.K_w]:
-            self.request_dir = DIRS['UP']
+            self.request_dir = DIRS["UP"]
         elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
-            self.request_dir = DIRS['DOWN']
+            self.request_dir = DIRS["DOWN"]
         elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            self.request_dir = DIRS['LEFT']
+            self.request_dir = DIRS["LEFT"]
         elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            self.request_dir = DIRS['RIGHT']
+            self.request_dir = DIRS["RIGHT"]
 
     def can_move(self, dir_vec: Vec2) -> bool:
-        next_pixel = Vec2(self.pixel_pos.x + dir_vec.x * PACMAN_SPEED,
-                          self.pixel_pos.y + dir_vec.y * PACMAN_SPEED)
+        next_pixel = Vec2(
+            self.pixel_pos.x + dir_vec.x * PACMAN_SPEED,
+            self.pixel_pos.y + dir_vec.y * PACMAN_SPEED,
+        )
         next_grid = pixel_to_grid(next_pixel)
         return is_walkable(next_grid.x, next_grid.y)
 
@@ -182,15 +186,22 @@ class Player:
             self.pixel_pos.x = 0
 
         # Try to turn into requested direction when centered on grid cell
-        if (self.pixel_pos.x - TILE_SIZE // 2) % TILE_SIZE == 0 and (self.pixel_pos.y - TILE_SIZE // 2) % TILE_SIZE == 0:
+        if (self.pixel_pos.x - TILE_SIZE // 2) % TILE_SIZE == 0 and (
+            self.pixel_pos.y - TILE_SIZE // 2
+        ) % TILE_SIZE == 0:
             self.grid_pos = pixel_to_grid(self.pixel_pos)
-            if self.request_dir != self.dir and is_walkable(self.grid_pos.x + self.request_dir.x, self.grid_pos.y + self.request_dir.y):
+            if self.request_dir != self.dir and is_walkable(
+                self.grid_pos.x + self.request_dir.x,
+                self.grid_pos.y + self.request_dir.y,
+            ):
                 self.dir = Vec2(self.request_dir.x, self.request_dir.y)
 
         # Move if possible
         if self.dir.x != 0 or self.dir.y != 0:
-            next_pixel = Vec2(self.pixel_pos.x + self.dir.x * PACMAN_SPEED,
-                              self.pixel_pos.y + self.dir.y * PACMAN_SPEED)
+            next_pixel = Vec2(
+                self.pixel_pos.x + self.dir.x * PACMAN_SPEED,
+                self.pixel_pos.y + self.dir.y * PACMAN_SPEED,
+            )
             next_grid = pixel_to_grid(next_pixel)
             # Allow movement only if next grid is walkable
             if is_walkable(next_grid.x, next_grid.y):
@@ -213,7 +224,9 @@ class Player:
         return ate_power
 
     def draw(self, surface):
-        pygame.draw.circle(surface, YELLOW, (self.pixel_pos.x, self.pixel_pos.y), self.radius)
+        pygame.draw.circle(
+            surface, YELLOW, (self.pixel_pos.x, self.pixel_pos.y), self.radius
+        )
 
 
 class Ghost:
@@ -226,7 +239,7 @@ class Ghost:
         self.dir = random.choice(DIR_LIST)
         self.radius = TILE_SIZE // 2 - 3
         self.home_grid = Vec2(home_grid.x, home_grid.y)  # respawn target
-        self.state = 'chase'  # 'chase' or 'frightened' or 'eaten'
+        self.state = "chase"  # 'chase' or 'frightened' or 'eaten'
         self.frightened_until = 0.0
         self.eaten_respawn_at = 0.0
 
@@ -234,20 +247,20 @@ class Ghost:
         self.grid_pos = Vec2(self.start_grid.x, self.start_grid.y)
         self.pixel_pos = grid_to_pixel(self.grid_pos)
         self.dir = random.choice(DIR_LIST)
-        self.state = 'chase'
+        self.state = "chase"
         self.frightened_until = 0.0
         self.eaten_respawn_at = 0.0
 
     def speed(self):
-        if self.state == 'frightened':
+        if self.state == "frightened":
             return FRIGHTENED_SPEED
-        elif self.state == 'eaten':
+        elif self.state == "eaten":
             return GHOST_SPEED + 1
         return GHOST_SPEED
 
     def set_frightened(self, now):
-        if self.state != 'eaten':
-            self.state = 'frightened'
+        if self.state != "eaten":
+            self.state = "frightened"
             self.frightened_until = now + POWER_DURATION
 
     def is_intersection(self):
@@ -273,7 +286,7 @@ class Ghost:
             self.dir = reverse
             return
 
-        if self.state == 'frightened':
+        if self.state == "frightened":
             # Move away from Pacman (simple heuristic): pick dir maximizing distance
             best = None
             best_dist = -1
@@ -284,7 +297,7 @@ class Ghost:
                     best_dist = dist
                     best = d
             self.dir = best
-        elif self.state == 'eaten':
+        elif self.state == "eaten":
             # Head back to home_grid (simple greedy)
             best = None
             best_dist = 1e9
@@ -307,23 +320,32 @@ class Ghost:
 
     def update(self, now, pacman_grid: Vec2):
         # Handle frightened expiration
-        if self.state == 'frightened' and now > self.frightened_until:
-            self.state = 'chase'
+        if self.state == "frightened" and now > self.frightened_until:
+            self.state = "chase"
 
         # Handle eaten respawn timer
-        if self.state == 'eaten' and now > self.eaten_respawn_at and (self.grid_pos.x, self.grid_pos.y) == (self.home_grid.x, self.home_grid.y):
-            self.state = 'chase'
+        if (
+            self.state == "eaten"
+            and now > self.eaten_respawn_at
+            and (self.grid_pos.x, self.grid_pos.y)
+            == (self.home_grid.x, self.home_grid.y)
+        ):
+            self.state = "chase"
 
         # Move: change direction only when aligned to grid
-        if (self.pixel_pos.x - TILE_SIZE // 2) % TILE_SIZE == 0 and (self.pixel_pos.y - TILE_SIZE // 2) % TILE_SIZE == 0:
+        if (self.pixel_pos.x - TILE_SIZE // 2) % TILE_SIZE == 0 and (
+            self.pixel_pos.y - TILE_SIZE // 2
+        ) % TILE_SIZE == 0:
             self.grid_pos = pixel_to_grid(self.pixel_pos)
             self.choose_dir(pacman_grid)
 
         spd = self.speed()
-        next_pixel = Vec2(self.pixel_pos.x + self.dir.x * spd, self.pixel_pos.y + self.dir.y * spd)
+        next_pixel = Vec2(
+            self.pixel_pos.x + self.dir.x * spd, self.pixel_pos.y + self.dir.y * spd
+        )
         next_grid = pixel_to_grid(next_pixel)
 
-        allow_gate = (self.state == 'eaten')  # only eaten ghosts can pass gate
+        allow_gate = self.state == "eaten"  # only eaten ghosts can pass gate
         if is_walkable(next_grid.x, next_grid.y, allow_gate=allow_gate):
             self.pixel_pos = next_pixel
             self.grid_pos = pixel_to_grid(self.pixel_pos)
@@ -338,13 +360,15 @@ class Ghost:
             self.pixel_pos.x = 0
 
     def draw(self, surface):
-        if self.state == 'frightened':
+        if self.state == "frightened":
             color = FRIGHTENED_COLOR
-        elif self.state == 'eaten':
+        elif self.state == "eaten":
             color = GREY
         else:
             color = self.color
-        pygame.draw.circle(surface, color, (self.pixel_pos.x, self.pixel_pos.y), self.radius)
+        pygame.draw.circle(
+            surface, color, (self.pixel_pos.x, self.pixel_pos.y), self.radius
+        )
 
 
 class Game:
@@ -353,7 +377,7 @@ class Game:
         pygame.display.set_caption("Pacman - Pygame")
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont('consolas', 20)
+        self.font = pygame.font.SysFont("consolas", 20)
 
         # Prepare maze content sets
         self.pellets, self.power_pellets = initial_pellets()
@@ -365,20 +389,20 @@ class Game:
 
         self.player = Player(self.pacman_start)
         self.ghosts = [
-            Ghost('Blinky', self.ghost_starts[0], (255, 0, 0), self.ghost_home),
-            Ghost('Pinky', self.ghost_starts[1], PINK, self.ghost_home),
-            Ghost('Inky', self.ghost_starts[2], CYAN, self.ghost_home),
-            Ghost('Clyde', self.ghost_starts[3], ORANGE, self.ghost_home),
+            Ghost("Blinky", self.ghost_starts[0], (255, 0, 0), self.ghost_home),
+            Ghost("Pinky", self.ghost_starts[1], PINK, self.ghost_home),
+            Ghost("Inky", self.ghost_starts[2], CYAN, self.ghost_home),
+            Ghost("Clyde", self.ghost_starts[3], ORANGE, self.ghost_home),
         ]
 
-        self.state = 'playing'  # 'playing', 'win', 'gameover'
+        self.state = "playing"  # 'playing', 'win', 'gameover'
         self.power_active_until = 0.0
 
     def reset_positions(self, lose_life=False):
         if lose_life:
             self.player.lives -= 1
             if self.player.lives <= 0:
-                self.state = 'gameover'
+                self.state = "gameover"
         self.player.reset(self.pacman_start)
         for g in self.ghosts:
             g.reset()
@@ -391,7 +415,7 @@ class Game:
             g.set_frightened(now)
 
     def update(self):
-        if self.state not in ('playing',):
+        if self.state not in ("playing",):
             return
 
         self.player.handle_input()
@@ -406,23 +430,23 @@ class Game:
         # Handle collisions between Pacman and ghosts
         for g in self.ghosts:
             if self.collision(self.player, g):
-                if g.state == 'frightened':
+                if g.state == "frightened":
                     # eat ghost
                     self.player.score += 200
-                    g.state = 'eaten'
+                    g.state = "eaten"
                     g.eaten_respawn_at = now + GHOST_RESPAWN_TIME
                     # teleport ghost directly to home grid center to simplify
                     g.grid_pos = Vec2(self.ghost_home.x, self.ghost_home.y)
                     g.pixel_pos = grid_to_pixel(g.grid_pos)
                     g.dir = random.choice(DIR_LIST)
-                elif g.state != 'eaten':
+                elif g.state != "eaten":
                     # Pacman loses a life and reset
                     self.reset_positions(lose_life=True)
                     break
 
         # Check win condition
         if not self.pellets and not self.power_pellets:
-            self.state = 'win'
+            self.state = "win"
 
     def collision(self, player: Player, ghost: Ghost) -> bool:
         dx = player.pixel_pos.x - ghost.pixel_pos.x
@@ -435,17 +459,17 @@ class Game:
         for y, row in enumerate(MAZE_LAYOUT):
             for x, ch in enumerate(row):
                 rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-                if ch == '#':
+                if ch == "#":
                     pygame.draw.rect(surface, WALL_COLOR, rect)
-                elif ch == 'G':
+                elif ch == "G":
                     pygame.draw.rect(surface, (40, 40, 40), rect)
         # Draw pellets
-        for (x, y) in self.pellets:
+        for x, y in self.pellets:
             cx = x * TILE_SIZE + TILE_SIZE // 2
             cy = y * TILE_SIZE + TILE_SIZE // 2
             pygame.draw.circle(surface, PELLET_COLOR, (cx, cy), 3)
         blink = (int(time.time() * 2) % 2) == 0
-        for (x, y) in self.power_pellets:
+        for x, y in self.power_pellets:
             cx = x * TILE_SIZE + TILE_SIZE // 2
             cy = y * TILE_SIZE + TILE_SIZE // 2
             r = 6 if blink else 4
@@ -454,14 +478,20 @@ class Game:
     def draw_hud(self, surface):
         hud_rect = pygame.Rect(0, ROWS * TILE_SIZE, WIDTH, HEIGHT - ROWS * TILE_SIZE)
         pygame.draw.rect(surface, (20, 20, 20), hud_rect)
-        text = self.font.render(f"Score: {self.player.score}   Lives: {self.player.lives}", True, WHITE)
+        text = self.font.render(
+            f"Score: {self.player.score}   Lives: {self.player.lives}", True, WHITE
+        )
         surface.blit(text, (8, ROWS * TILE_SIZE + 12))
-        if self.state == 'win':
+        if self.state == "win":
             msg = self.font.render("YOU WIN! Press R to restart", True, YELLOW)
-            surface.blit(msg, (WIDTH // 2 - msg.get_width() // 2, ROWS * TILE_SIZE + 12))
-        elif self.state == 'gameover':
+            surface.blit(
+                msg, (WIDTH // 2 - msg.get_width() // 2, ROWS * TILE_SIZE + 12)
+            )
+        elif self.state == "gameover":
             msg = self.font.render("GAME OVER! Press R to restart", True, YELLOW)
-            surface.blit(msg, (WIDTH // 2 - msg.get_width() // 2, ROWS * TILE_SIZE + 12))
+            surface.blit(
+                msg, (WIDTH // 2 - msg.get_width() // 2, ROWS * TILE_SIZE + 12)
+            )
 
     def run(self):
         running = True
@@ -473,19 +503,26 @@ class Game:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         running = False
-                    if event.key == pygame.K_r and self.state in ('win', 'gameover'):
+                    if event.key == pygame.K_r and self.state in ("win", "gameover"):
                         # full reset
                         self.player = Player(self.pacman_start)
                         self.ghosts = [
-                            Ghost('Blinky', self.ghost_starts[0], (255, 0, 0), self.ghost_home),
-                            Ghost('Pinky', self.ghost_starts[1], PINK, self.ghost_home),
-                            Ghost('Inky', self.ghost_starts[2], CYAN, self.ghost_home),
-                            Ghost('Clyde', self.ghost_starts[3], ORANGE, self.ghost_home),
+                            Ghost(
+                                "Blinky",
+                                self.ghost_starts[0],
+                                (255, 0, 0),
+                                self.ghost_home,
+                            ),
+                            Ghost("Pinky", self.ghost_starts[1], PINK, self.ghost_home),
+                            Ghost("Inky", self.ghost_starts[2], CYAN, self.ghost_home),
+                            Ghost(
+                                "Clyde", self.ghost_starts[3], ORANGE, self.ghost_home
+                            ),
                         ]
                         self.pellets, self.power_pellets = initial_pellets()
-                        self.state = 'playing'
+                        self.state = "playing"
 
-            if self.state == 'playing':
+            if self.state == "playing":
                 self.update()
 
             self.draw_maze(self.screen)
